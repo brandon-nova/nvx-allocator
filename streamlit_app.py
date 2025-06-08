@@ -80,6 +80,14 @@ st.write(f"Tickers: {' '.join(tickers)}")
 
 # --- Get Stock Data and Filter ---
 prices, infos = get_stock_data(tickers)
+
+# --- Data Check: Display error for tickers with no data ---
+for t in tickers:
+    if t not in prices or prices[t] is None or prices[t].empty:
+        st.warning(f"⚠️ No price data returned for {t}. (yfinance may be blocked or symbol is invalid)")
+    elif t not in infos or not infos[t] or infos[t].get("marketCap", 0) == 0:
+        st.warning(f"⚠️ No company info/market cap for {t}. (Could be API limit or delisted ticker)")
+
 filtered_tickers = [
     t for t in tickers if passes_filters(prices[t], infos[t])
 ]

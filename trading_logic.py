@@ -1,11 +1,13 @@
 import yfinance as yf
 import pandas as pd
+import streamlit as st
 
 def parse_tickers(raw):
     if not raw:
         return []
     return list({t.strip().upper() for t in raw.replace(',', ' ').replace('\n', ' ').split() if t.strip()})
 
+@st.cache_data(show_spinner="Loading stock data...")
 def get_stock_data(tickers):
     if not tickers:
         return {}

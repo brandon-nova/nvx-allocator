@@ -54,11 +54,9 @@ if st.session_state.editing:
         save_portfolios(st.session_state.lists)
         st.session_state.editing = False
     st.stop()  # Block rest of app in edit mode
-    
-# Toggle
-show_lists = st.checkbox("View Lists", value=True)
 
-if show_lists:
+#EXPANDER FOR LISTS
+with st.expander("View Lists", expanded=True):
     cols = st.columns(8)
     for idx in range(6):
         name = st.session_state.lists[idx]['name'][:4] or f'P{idx+1}'
@@ -68,6 +66,7 @@ if show_lists:
                 st.experimental_rerun()
     if cols[6].button("Edit", key="edit_btn"):
         st.session_state.editing = True
+
 
 # --- Portfolio Table ---
 active_list = st.session_state.lists[st.session_state.active_list]

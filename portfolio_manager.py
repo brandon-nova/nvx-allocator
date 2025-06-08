@@ -11,7 +11,7 @@ def load_portfolios():
         except Exception:
             pass
     # Default: 6 blank portfolios
-    return [{'name': f'Portfolio {i+1}', 'tickers': ''} for i in range(6)]
+    return [{'name': f'P {i+1}', 'tickers': ''} for i in range(6)]
 
 def save_portfolios(portfolios):
     try:

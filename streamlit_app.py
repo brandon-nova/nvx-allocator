@@ -22,7 +22,7 @@ def update_amount():
     save_amount(st.session_state.set_amount)
 
 # --- UI: Set Amount (single widget, no submit, updates live) ---
-st.title("NVX Allocator")
+st.markdown("### NVX Allocator")
 st.number_input(
     "Set Amount:",
     min_value=1,
@@ -114,8 +114,8 @@ alloc_perc = {k: round(v * 100 / total_score, 2) for k, v in allocations.items()
 amount = st.session_state.set_amount
 table = []
 for t in filtered_tickers:
-    perc = alloc_perc[t]
-    dollar = round(amount * perc / 100, 2)
+    perc = round(alloc_perc[t])
+    dollar = round(amount * perc / 100, 0)
     try:
         last_close = prices[t].iloc[-1]['Close']
         shares = math.floor(dollar / last_close,) if last_close else 0
@@ -131,4 +131,8 @@ for t in filtered_tickers:
     })
 
 df_table = pd.DataFrame(table)
-st.dataframe(df_table, use_container_width=True)
+st.dataframe(
+    df_table.reset_index(drop=True),
+    use_container_width=True,
+    hide_index=True
+)

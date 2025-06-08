@@ -1,8 +1,10 @@
+
 import streamlit as st
 import pandas as pd
 import math
 from trading_logic import parse_tickers, get_stock_data, allocation_rules, passes_filters
 from portfolio_manager import load_portfolios, save_portfolios, load_amount, save_amount
+
 
 st.set_page_config(page_title="Portfolio Allocator", layout="wide")
 

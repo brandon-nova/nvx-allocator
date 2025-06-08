@@ -1,58 +1,39 @@
 import streamlit as st
 import pandas as pd
+import math
 from trading_logic import parse_tickers, get_stock_data, allocation_rules, passes_filters
 from portfolio_manager import load_portfolios, save_portfolios, load_amount, save_amount
 
-# Initialize only if not already set
+st.set_page_config(page_title="Portfolio Allocator", layout="wide")
+
+# --- Persistent State Initialization ---
 if 'set_amount' not in st.session_state:
     st.session_state.set_amount = load_amount()
+if 'lists' not in st.session_state:
+    st.session_state.lists = load_portfolios()
+if 'active_list' not in st.session_state:
+    st.session_state.active_list = 0
+if 'editing' not in st.session_state:
+    st.session_state.editing = False
 
+# --- Save Amount on Change ---
 def update_amount():
     save_amount(st.session_state.set_amount)
 
+# --- UI: Set Amount (single widget, no submit, updates live) ---
 st.title("Portfolio Allocator")
 st.number_input(
     "Set Amount:",
     min_value=1,
     step=1,
     key="set_amount",
-    on_change=update_amount
+    on_change=update_amount,
 )
 
-st.set_page_config(page_title="Portfolio Allocator", layout="wide")
-
-# --- Persistent State ---
-if 'lists' not in st.session_state:
-    st.session_state.lists = load_portfolios()
-if 'active_list' not in st.session_state:
-    st.session_state.active_list = 0
-if 'initialized' not in st.session_state:
-    st.session_state.set_amount = load_amount()
-    st.session_state.initialized = True
-if 'editing' not in st.session_state:
-    st.session_state.editing = False
-
-# --- UI: Set Amount (no submit, updates live) ---
-st.title("Portfolio Allocator")
-set_amount = st.number_input(
-    "Set Amount:",
-    value=st.session_state.set_amount,
-    min_value=1,
-    step=1,
-    on_change=lambda: save_amount(st.session_state.set_amount),
-    key="set_amount"
-)
-save_amount(set_amount)
-
-# --- Edit Mode Checkbox ---
-st.sidebar.markdown("### Edit Mode")
-edit_mode = st.sidebar.checkbox("Edit", value=st.session_state.editing, key="edit_mode_toggle")
-st.session_state.editing = edit_mode
 
 # --- Edit List Full Page (if editing) ---
 if st.session_state.editing:
     lst = st.session_state.lists[st.session_state.active_list]
-    # Enforce name <= 4 chars
     def_name = f'P{st.session_state.active_list+1}'
     new_name = st.text_input(
         "Name (max 4 chars)",
@@ -77,11 +58,9 @@ if st.session_state.editing:
 # --- UI: List Selection and Edit ---
 cols = st.columns(8)
 for idx in range(6):
-    # Show portfolio name, max 4 chars
     name = st.session_state.lists[idx]['name'][:4] if st.session_state.lists[idx]['name'] else f'P{idx+1}'
     if cols[idx].button(name, key=f"list_{idx}"):
         st.session_state.active_list = idx
-        # If in edit mode, jump right to edit
         if st.session_state.editing:
             st.experimental_rerun()
 # Edit button (one click, no double tap)
@@ -130,7 +109,7 @@ for t in filtered_tickers:
     dollar = round(amount * perc / 100, 2)
     try:
         last_close = prices[t].iloc[-1]['Close']
-        shares = round(dollar / last_close, 4) if last_close else 0
+        shares = math.floor(dollar / last_close,) if last_close else 0
     except Exception:
         last_close = 0
         shares = 0

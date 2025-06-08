@@ -1,10 +1,9 @@
-
 import streamlit as st
 import pandas as pd
 import math
 from trading_logic import parse_tickers, get_stock_data, allocation_rules, passes_filters
 from portfolio_manager import load_portfolios, save_portfolios, load_amount, save_amount
-
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Portfolio Allocator", layout="wide")
 
@@ -23,7 +22,7 @@ def update_amount():
     save_amount(st.session_state.set_amount)
 
 # --- UI: Set Amount (single widget, no submit, updates live) ---
-st.markdown("<h3 style='margin-bottom: 1rem;'>NVX Allocator</h3>", unsafe_allow_html=True)
+st.title("NVX Allocator")
 st.number_input(
     "Set Amount:",
     min_value=1,
@@ -31,7 +30,6 @@ st.number_input(
     key="set_amount",
     on_change=update_amount,
 )
-
 
 # --- Edit List Full Page (if editing) ---
 if st.session_state.editing:
@@ -56,28 +54,20 @@ if st.session_state.editing:
         save_portfolios(st.session_state.lists)
         st.session_state.editing = False
     st.stop()  # Block rest of app in edit mode
+    
+# Toggle
+show_lists = st.checkbox("View Lists", value=True)
 
-# --- UI: List Selection and Edit ---
-# --- UI: List Selection and Edit as Scrollable Row ---
-st.markdown("""
-    <style>
-    .portfolio-row {display: flex; overflow-x: auto; gap: 8px;}
-    .portfolio-btn {min-width: 70px;}
-    </style>
-    """, unsafe_allow_html=True)
-
-st.markdown('<div class="portfolio-row">', unsafe_allow_html=True)
-for idx in range(6):
-    name = st.session_state.lists[idx]['name'][:4] if st.session_state.lists[idx]['name'] else f'P{idx+1}'
-    # Use unique key and form to keep button state
-    if st.button(name, key=f"list_{idx}", help=f"Switch to {name}"):
-        st.session_state.active_list = idx
-        st.session_state.editing = False
-        st.experimental_rerun()
-if st.button("Edit", key="edit_btn"):
-    st.session_state.editing = True
-    st.experimental_rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+if show_lists:
+    cols = st.columns(8)
+    for idx in range(6):
+        name = st.session_state.lists[idx]['name'][:4] or f'P{idx+1}'
+        if cols[idx].button(name, key=f"list_{idx}"):
+            st.session_state.active_list = idx
+            if st.session_state.editing:
+                st.experimental_rerun()
+    if cols[6].button("Edit", key="edit_btn"):
+        st.session_state.editing = True
 
 # --- Portfolio Table ---
 active_list = st.session_state.lists[st.session_state.active_list]
